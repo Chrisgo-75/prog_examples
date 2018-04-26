@@ -1,0 +1,83 @@
+# Install Go 1.9 AND Then Install Overmind (Foreman alternative) within Ubuntu 16.04 LTS
+
+Resources
+	Install Go
+		* try 1st:  https://medium.com/@patdhlk/how-to-install-go-1-9-1-on-ubuntu-16-04-ee64c073cd79
+		* 2nd:  https://www.digitalocean.com/community/tutorials/how-to-install-go-1-6-on-ubuntu-16-04
+	Install Overmind
+		* https://github.com/DarthSim/overmind
+
+
+## Download and Install Go
+
+1. Pull down the Go package file, and save it to your current working directory.
+	$ sudo curl -O https://storage.googleapis.com/golang/go1.9.1.linux-amd64.tar.gz
+
+2. Next, use tar to unpack the package. This command will use the Tar tool to open and expand the downloaded file, and creates a folder using the package name, and then moves it to /usr/local.
+	$ sudo tar -xvf go1.9.1.linux-amd64.tar.gz
+	$ sudo mv go /usr/local
+
+	* Some users prefer different locations for their Go installation, or may have mandated software locations.
+		- The Go package is now in /usr/local which also ensures Go is in your $PATH for Linux.
+		- It is possible to install Go to an alternate location but the $PATH information will change. The location you pick to house your Go folder will be referenced later in this tutorial, so remember where you placed it if the location is different than /usr/local.
+
+## In this step, we’ll set some paths that Go needs
+
+The paths in this step are all given are relative to the location of your Go installation in /usr/local. If you chose a new directory, or left the file in download location, modify the commands to match your new location.
+
+1. set Go’s root value, which tells Go where to look for its files:
+	$ sudo nano ~/.profile
+
+	# At the end of the file, add this line:
+	export PATH=$PATH:/usr/local/go/bin
+
+	# If you chose an alternate installation location for Go, add
+	# these lines instead to the same file. This example shows
+	# the commands if Go is installed in your home directory:
+	export GOPATH=$HOME/go_projects
+	export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+
+	# With your profile updated, save and close the file. Refresh your profile by running:
+	$ source ~/.profile
+	# Note: closing and re-opening terminal did not work. The above command did work.
+
+## Testing your Go 1.9.1 Installation
+
+1. Simple test is running below command which should output Go's version.
+	$ go version
+
+2. Create a new directory (Workspace) for Go Projects
+	$ mkdir $HOME/go_projects
+
+3. Point Go to the new workspace you just created by exporting GOPATH:
+	$ export GOPATH=$HOME/go_projects
+
+4. Since I am not interested in having this test code in Git Repo, am creating a different Folder structure than what the article recommends.
+	The article: https://medium.com/@patdhlk/how-to-install-go-1-9-1-on-ubuntu-16-04-ee64c073cd79
+		(ex. mkdir -p work/src/github.com/user/hello)
+
+	At this point, issues arose. Found below article and followed "Writing our first program".
+		Article: https://phollow.fr/2012/11/building-installing-testing-golang/
+		
+		Things that were altered from article are:
+			a. Directory that was created in Ubuntu
+				/home/cgarndt/go_projects/src/phollow.fr/hello
+			b. Cmd ran to test the hello.go file is different than the one in article. The cmd is
+				$ cd /home/cgarndt/go_projects/src/phollow.fr/hello
+				$ go run hello.go
+			c. The cmd to get the Go file to run was found on Go's intro page at https://golang.org/cmd/go/
+
+## Install and Test Overmind
+
+1. https://github.com/DarthSim/overmind
+
+	Per Github page, install tmux
+		# on Ubuntu
+		$ sudo apt-get install tmux
+	
+	Per Github page, install Overmind (and the below method is how it gets Updated as well)
+		# Build Overmind from source (need Go 1.6 or later to build the project).
+		$ go get -u -f github.com/DarthSim/overmind
+	
+	Test if Overmind was installed
+		$ overmind -h
