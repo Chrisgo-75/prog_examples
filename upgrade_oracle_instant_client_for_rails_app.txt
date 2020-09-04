@@ -1,0 +1,120 @@
+```
+
+# Update Oracle Instant Client
+
+## Questions
+	
+	Q: What Oracle gems are being used in cals_db_sync application?
+		gem 'ruby-oci8'
+			* https://www.rubydoc.info/github/kubo/ruby-oci8
+			* https://github.com/kubo/ruby-oci8
+		gem 'activerecord-oracle_enhanced-adapter', '~> 1.6.0'
+			* https://github.com/rsim/oracle-enhanced
+
+## Steps
+
+1. Before doing anything, make sure connection to Campus Oracle data-view works from cals_db_sync application:
+	a. cd to cals_db_sync application/current directory.
+	b. $ RAILS_ENV=staging bundle exec rails console
+	c. > x = Epm::Queries.retrieve_uwbnemailaddr_for_emplid('<empl_id_here>')
+		 => #<ActiveRecord::Result:0x0000000004cbba98 @columns=["emplid", "uw_bn_email_addr"], @rows=[["<empl_id>", "c----------.----t@w---.edu"]], @hash_rows=nil, @column_types={}> 
+	d. Successful connection.
+
+2. Download zip packages
+
+	Grab the URL's to the zip files:
+	https://www.rubydoc.info/gems/ruby-oci8/file/docs/install-instant-client.md
+		> https://www.oracle.com/database/technologies/instant-client/downloads.html
+			> https://www.oracle.com/database/technologies/instant-client/linux-x86-64-downloads.html
+
+	On server in /usr/lib/oracle/ directory run the below commands:
+		sudo wget https://download.oracle.com/otn_software/linux/instantclient/185000/instantclient-basic-linux.x64-18.5.0.0.0dbru.zip
+		sudo wget https://download.oracle.com/otn_software/linux/instantclient/185000/instantclient-sdk-linux.x64-18.5.0.0.0dbru.zip
+		sudo wget https://download.oracle.com/otn_software/linux/instantclient/185000/instantclient-sqlplus-linux.x64-18.5.0.0.0dbru.zip
+	
+3. Unzip zip packages
+
+	# May need unzip package
+	sudo apt-get install unzip
+	
+	# 1st
+	sudo unzip instantclient-basic-linux.x64-18.5.0.0.0dbru.zip
+	# 2nd
+	sudo unzip instantclient-sdk-linux.x64-18.5.0.0.0dbru.zip
+	# 3rd
+	sudo unzip instantclient-sqlplus-linux.x64-18.5.0.0.0dbru.zip
+	
+	# FYI. unzipping the 2nd and 3rd packages put their files within "instantclient_18_5" directory that was auto-created in unzipping 1st package.
+
+4. Did not need to do this step since the symbolic link "libclntsh.so" exists and was pointing to "libclntsh.so.18.1".
+
+	If /usr/lib/oracle/instantclient_18_5/libclntsh.so is not found, make a symbolic link to link the library.
+
+	cd /usr/lib/oracle/instantclient_18_5
+	sudo ln -s libclntsh.so.18.1 libclntsh.so
+
+5. Within (/usr/lib/oracle/instantclient_18_5) directory
+
+	# sqlplus will more than likely require libaio package, so install that dependency.
+	# From https://apextips.blogspot.com/2019/09/installing-oracle-instant-client-on.html
+	sudo apt-get install libaio1
+
+6. Define LD_LIBRARY_PATH
+
+	(Did not use this approach) To define this variable, simply use (on the shell prompt):
+		$ LD_LIBRARY_PATH=/usr/lib/oracle/instantclient_18_5
+		$ export LD_LIBRARY_PATH
+		
+		Side Note: below site says to add LD_LIBRARY_PATH to apache's (/etc/apache2/envvars)
+					http://www.thesatya.com/blog/2010/02/
+		
+	Used this approach which was done in previous installations.
+		# To make it permanent, you can edit the ldconfig files.
+		cd /etc/ld.so.conf.d
+		# open /etc/ld.so.conf.d/oracle.conf file (create it if file doesn't exist) and put in the directory of where you put the Oracle files:
+		sudo vim oracle.conf
+		# and the file contains one line (below)
+		/usr/lib/oracle/instantclient_18_5
+		# Update Dynamic Linker Run-Time Bindings or Cache
+		# resource => https://serverfault.com/questions/201709/how-to-set-ld-library-path-in-ubuntu
+		sudo ldconfig
+
+7. Test out ...
+
+	Rename folder to make sure it is NOT being referenced when conducting Oracle Connection Test.
+	$ sudo mv instantclient_11_2 old_instantclient_11_2
+		Rename folder back.
+		$ sudo mv old_instantclient_11_2 instantclient_11_2
+
+	Oracle Connection Test ---failed--- due to unable to "build" console to run tests in...
+	a. cd to cals_db_sync application/current directory.
+	b. $ RAILS_ENV=staging bundle exec rails console
+	c. > x = Epm::Queries.retrieve_uwbnemailaddr_for_emplid('<empl_id_here>')
+
+	In trying to (bin/rails console), I get the below load error
+	ruby-2.3.6-rg276@cals_db_sync ~/apps/cals_db_sync/current $ RAILS_ENV=staging bundle exec rails console
+	/home/ruby_193/apps/cals_db_sync/shared/bundle/ruby/2.3.0/gems/activesupport-4.2.5.1/lib/active_support/dependencies.rb:274:in `require': libclntsh.so.11.1: cannot open shared object file: No such file or directory - /home/ruby_193/apps/cals_db_sync/shared/bundle/ruby/2.3.0/gems/ruby-oci8-2.2.4.1/lib/oci8lib_230.so (LoadError)
+
+	To fix
+	VBox VM
+		$ gem uninstall activerecord-oracle_enhanced-adapter
+			=> Successfully uninstalled activerecord-oracle_enhanced-adapter-1.6.9
+		$ gem uninstall ruby-oci8
+			=> Successfully uninstalled ruby-oci8-2.2.4.1
+		Note: it is "ruby-oci8" that re-does the "link" to the updated Oracle InstantClient version.
+		$ bundle
+			***or*** 
+			gem install activerecord-oracle_enhanced-adapter
+			gem install ruby-oci8
+	Rails Server
+		$ bundle exec gem uninstall ruby-oci8
+		$ bundle
+
+	Oracle Connection Test 
+	a. cd to cals_db_sync application/current directory.
+	b. $ RAILS_ENV=staging bundle exec rails console
+	c. > x = Epm::Queries.retrieve_uwbnemailaddr_for_emplid('<empl_id_here>')
+		=> outputted data successfully.
+
+
+```
