@@ -14,6 +14,8 @@ Description
   
   Install Docker Engine
   
+  Set Up Lets Encrypt and Enable SSL on Apache2
+  
   .
 
 ---
@@ -132,5 +134,49 @@ $ docker buildx install
 
 ```
 
+## Set Up Lets Encrypt and Enable SSL on Apache2
+
+```text
+Resources
+  * https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-20-04
+  * https://certbot.eff.org/
+  * https://certbot.eff.org/instructions?ws=apache&os=ubuntufocal
+
+1) enable ssl using the following command
+    $ sudo a2enmod ssl
+    
+    $ sudo service apache2 restart
+
+2) To test that snapd is installed on your system, install the hello-world snap and make sure it runs correctly:
+
+    $ sudo snap install hello-world
+    hello-world 6.4 from Canonical✓ installed
+    $ hello-world
+    Hello World!
+
+3) Execute the following instructions on the command line on the machine to ensure that you have the latest version of snapd.
+
+    $ sudo snap install core; sudo snap refresh core
+
+4) Remove certbot-auto and any Certbot OS packages
+    
+    $ sudo apt remove certbot
+
+5) Install Certbot
+
+    $ sudo snap install --classic certbot
+
+6) Prepare the Certbot command
+    Execute the following instruction on the command line on the machine to ensure that the certbot command can be run.
+
+    $ sudo ln -s /snap/bin/certbot /usr/bin/certbot
+
+7) Run this command to get a certificate and have Certbot edit your apache configuration automatically to serve it, turning on HTTPS access in a single step.
+
+    $ sudo certbot --apache
+
+    Please enter domain name: scott.cals.wisc.edu
+
+```
 
 
