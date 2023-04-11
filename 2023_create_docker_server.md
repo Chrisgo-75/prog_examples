@@ -18,7 +18,7 @@ Description
   
   Install and Set up Shibboleth
   
-  .
+  Apache Commands
 
 ---
 
@@ -275,3 +275,38 @@ Resources
 
 ```
 
+## Apache Commands
+
+```text
+/etc/apache2> $ cat ./sites-enabled/*
+    * Displays config info and easier to see it grouped together.
+
+$ apache2ctl -S
+    * Shows warnings if there are any.
+    * Shows virtual host configuration.
+
+$ sudo apache2ctl configtest
+$ apache2ctl -t
+	* Checks Apache config files syntax.
+
+$ apache2ctl -t -D DUMP_VHOSTS
+	* Displays all virtual host configuration information.
+
+# Other Commands
+
+$ systemctl status apache2
+	* displays status of apache server.
+
+$ sudo service apache2 restart
+
+$ systemctl [restart | reload] apache2
+	* restarts apache server.
+
+$ netstat -tupan | grep -i http
+	* Lists the ports that the apache web server is listening on.
+
+$ netstat -tupan | grep -i '80\|443'
+
+$ apache2ctl -v
+	* displays version of Apache server.
+```
