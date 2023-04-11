@@ -12,6 +12,8 @@ Description
   
   Install Apache2
   
+  Install Docker Engine
+  
   .
 
 ---
@@ -76,6 +78,58 @@ Description
     4) Check to see if Apache2 default html page displays
     
         Browser: http://scott.cals.wisc.edu/
+```
+
+## Install Docker Engine
+
+```text
+Resources
+  * https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-22-04
+
+$ sudo apt update
+
+Install a few prerequisite packages which let apt use packages over HTTPS
+$ sudo apt install apt-transport-https ca-certificates curl software-properties-common
+
+Add the GPG key for the official Docker repository to your system
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+Add the Docker repository to APT sources
+$ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+Update your existing list of packages again for the addition to be recognized
+$ sudo apt update
+
+Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
+$ apt-cache policy docker-ce
+
+Finally, install Docker
+$ sudo apt install docker-ce
+
+Docker should now be installed, the daemon started, and the process enabled to start on boot. Check that it’s running
+$ sudo systemctl status docker
+or
+$ sudo service docker status
+Note: Installing Docker now gives you not just the Docker service (daemon) but also the docker command line utility, or the Docker client.
+
+Executing the Docker Command Without Sudo
+$ sudo usermod -aG docker ${USER}
+Note: To apply the new group membership, log out of the server and back in.
+
+Confirm that your user is now added to the docker group by typing
+$ groups
+
+In using "docker image build" commands I get the below message:
+    DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+                Install the buildx component to build images with BuildKit:
+                https://docs.docker.com/go/buildx/
+
+So to address this message and install buildx plugin:
+$ sudo apt install docker-buildx-plugin
+
+Set "docker build" command as an alias to "docker buildx"
+$ docker buildx install
+
 ```
 
 
