@@ -16,6 +16,8 @@ Description
   
   Set Up Lets Encrypt and Enable SSL on Apache2
   
+  Install and Set up Shibboleth
+  
   .
 
 ---
@@ -179,4 +181,97 @@ Resources
 
 ```
 
+## Install and Set up Shibboleth
+
+```text
+Resources
+  * NetID Login Service - Apache Installation (Ubuntu / Debian) from Packages
+      https://kb.wisc.edu/22747
+  * NetID Login Service - Getting Started
+      https://kb.wisc.edu/86317
+  * https://medium.com/@winma.15/shibboleth-sp-installation-in-ubuntu-d284b8d850da
+  * https://ws.learn.ac.lk/wiki/spiam2018
+
+1) Install the Shibboleth SP:
+
+    $ sudo apt install libapache2-mod-shib
+
+2) Execute these commands to activate shibd on startup
+
+    $ sudo chmod +x /etc/init.d/shibd
+    $ sudo update-rc.d shibd defaults
+    # At this point the Shibboleth daemon has been installed and configured to run at startup.
+
+3) Start the Shibboleth daemon and examine the logs for any errors
+
+    $ sudo service shibd start
+    $ grep -E 'CRIT|ERROR' /var/log/shibboleth/shibd.log
+
+    # You may see the following item in the shibd log. You can safely ignore it for now. 
+    2016-01-20 09:31:20 CRIT Shibboleth.Application : no MetadataProvider available, configuration is probably unusable
+
+    # You may also see one or both of the following errors indicating that your Shibboleth key pair is missing.
+    ERROR OpenSSL : error data: fopen('/etc/shibboleth/sp-key.pem','r')
+    CRIT Shibboleth.Application : error building CredentialResolver: Unable to load private key from file (/etc/shibboleth/sp-key.pem)
+    
+    # If the above error is in the log, run the following commands to install the key/cert files, and restart the Shibboleth service. 
+    (Create SP metadata Signing and Encryption credentials)
+    $ cd /etc/shibboleth
+
+
+    # What I used:
+    $ sudo shib-keygen -n sp-signing-new
+    $ sudo shib-keygen -n sp-encrypt
+    $ sudo openssl req -x509 -sha256 -nodes -days 3650 -newkey rsa:2048 -subj "/CN=$HOSTNAME" -keyout /etc/shibboleth/sp-signing-key.pem -out /etc/shibboleth/sp-signing-cert.pem
+    # Note: make sure the two files that the above line creates is owned and grouped by "_shibd".
+        $ sudo chown _shibd:_shibd sp-signing-cert.pem
+        $ sudo chown _shibd:_shibd sp-signing-key.pem
+    # Note: so these key/certs that are created is used to identify the host where Shibboleth is running. It is not connected to the websites that are running on it.
+
+    # Example from the internet (which I did not use):
+    $ shib-keygen -u _shibd -g _shibd -h scott.cals.wisc.edu -y 30 -e https://scott.cals.wisc.edu/shibboleth -n sp-signing -f
+    $ shib-keygen -u _shibd -g _shibd -h scott.cals.wisc.edu -y 30 -e https://scott.cals.wisc.edu/shibboleth -n sp-encrypt -f
+
+    $ sudo service shibd restart
+    $ /usr/sbin/shibd -t
+    $ sudo service shibd restart
+    
+    # Enable the shib2 module in Apache and restart Apache
+    $ sudo a2enmod shib
+    $ sudo service apache2 restart
+
+    # Open up a web browser and point to your site with the following Shibboleth path
+    https://www.yoursite.wisc.edu/Shibboleth.sso/Session
+    https://scott.cals.wisc.edu/Shibboleth.sso/Session
+        https://scott.cals.wisc.edu/Shibboleth.sso/Metadata
+    # Verify that you see this message:
+    A valid session was not found.
+
+    # Generate Shibboleth2.xml File ... using https://kb.wisc.edu/22747
+    a. Clicked on production link.
+    b. Entered in values per web-form fields.
+    c. Generated .xml file and placed in /etc/shibboleth/
+    d. Edit Shibboleth2.xml
+        Change entityID to your domain name. So:
+        <ApplicationDefaults entityID="scott.cals.wisc.edu"
+
+    # Download Metadata Signing Certificate
+    a. Selected "production" ... actually ran below command on server.
+    b. Placed file within /etc/shibboleth/
+        $ sudo wget <look at kb.wisc.edu>
+
+    # restart the Shibboleth daemon and Apache, examine the logs to verify that federation metadata was successfully downloaded
+    $ sudo service shibd restart
+    $ sudo service apache2 restart
+    $ sudo grep extracted... /var/log/shibboleth/shibd.log
+    # ... and the above command should output the following: (You should see the following in the shibd.log)
+    2012-01-20 10:15:26 INFO OpenSAML.MetadataProvider.XML : loaded XML resource (extracted...)
+
+    # Open up a web browser and point to your site with the following Shibboleth path:
+    https://scott.cals.wisc.edu/Shibboleth.sso/Metadata
+    # Verify that there is XML metadata content at this path, your browser may try to download it. 
+
+    # Finally contact ******* to authorize https://scott.cals.wisc.edu as a valid service provider.
+
+```
 
