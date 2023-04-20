@@ -13,6 +13,8 @@
   Running RSpec Tests
   
   Adding Custom SCSS
+  
+  Common Commands Used When Building Rails App
 
 ---
 
