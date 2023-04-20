@@ -11,6 +11,8 @@
   keep sessions for 9 hrs only
   
   Running RSpec Tests
+  
+  Adding Custom SCSS
 
 ---
 
@@ -283,4 +285,53 @@ Run a specific test
     $ docker compose run --rm -e "RAILS_ENV=test" app bundle exec rspec spec/models/station_spec.rb:19
 ```
 
+## Adding Custom SCSS
+
+### Bundling CSS Into One Big File
+
+1) Created new SCSS file within `app/assets/stylesheets/arspirf_site.scss`
+
+2) Link to new SCSS file within `app/assets/stylesheets/application.bootstrap.scss`
+
+```text
+    @import 'arspirf_site';
+```
+
+3) Run `yarn run build:css` to recompile the CSS assets
+
+```text
+    Docker container is running.
+    $ docker exec -it ex_app_dev bash
+    # yarn run build:css
+    # exit
+    I then opened browser and verified changes took effect which they did.
+    FYI: the custom CSS was added to a single compiled CSS file. I viewed the CSS file in browser on dev.
+```
+
+4) Notes/resources
+
+  * https://github.com/rails/cssbundling-rails
+
+  * https://github.com/rails/jsbundling-rails
+
+  * https://www.nickhammond.com/learning-to-love-bin-slash-dev-in-rails-7/
+
+### Bundle CSS Into Separate Files (wasn't able to get this to work)
+
+1) Created new scss file within `app/assets/stylesheets/arspirf_site.scss`
+
+2) Link to new CSS/SCSS files within application.html.erb
+
+```text
+    # You can refer to other CSS files by ***expanding*** the stylesheet_link_tag in application.html.erb like so:
+    <%= stylesheet_link_tag "application", "other", "styles", "data-turbo-track": "reload" %>
+```
+
+## Common Commands Used When Building Rails App
+
+1) Generating Files via Rails, will need to re-apply folder/file permissions
+
+```text
+    $ sudo chown -R $USER:$USER .
+```
 
